@@ -170,31 +170,6 @@
         linear-gradient(180deg, #f7faff 0%, #eef3f8 100%);
     }
 
-    .header {
-      background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(255,255,255,0.78));
-      backdrop-filter: blur(16px);
-      border-radius: 22px;
-      padding: 22px 26px;
-      margin-bottom: 22px;
-      box-shadow: var(--dk-shadow);
-      border: 1px solid rgba(22, 103, 217, 0.10);
-    }
-
-    .header h2 {
-      margin: 0;
-      font-size: 24px;
-      color: var(--dk-navy);
-      letter-spacing: -0.4px;
-    }
-
-    .header p {
-      margin: 7px 0 0;
-      color: var(--dk-muted);
-      font-size: 14px;
-      max-width: 850px;
-      line-height: 1.45;
-    }
-
     .kpis {
       display: grid;
       grid-template-columns: repeat(4, minmax(180px, 1fr));
@@ -575,16 +550,6 @@
     </aside>
 
     <main class="main">
-
-      <section class="header">
-        <div>
-          <h2>¿Te imaginas tomar decisiones así de fácil?</h2>
-          <p>
-            Convierte tus datos en tableros visuales, interactivos y listos para vender más.
-            Descubre ventas, costos, utilidad, productos ganadores y oportunidades en segundos.
-          </p>
-        </div>
-      </section>
 
       <section class="kpis">
         <div class="kpi-card">
@@ -1620,15 +1585,6 @@
         .replace(/'/g, "\\'");
     }
 
-    let resizeTimer;
-
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimer);
-
-      resizeTimer = setTimeout(() => {
-        location.reload();
-      }, 300);
-    });
   </script>
 </body>
 </html>
