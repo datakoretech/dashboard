@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset-width, initial-scale=1.0" />  <meta charset="UTF-8" />
+  <title>Dashboard Ventas Zapatos | DataKore</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+  <style>
+    :root {
+      --dk-navy: #071734;
+      --dk-blue: #1667d9;
+      --dk-cyan: #4db4ff;
+      --dk-bg: #eef3f8;
+      --dk-card: #ffffff;
+      --dk-text: #101828;
+      --dk-muted: #667085;
+      --dk-border: #d9e2ef;
+      --dk-green: #12b76a;
+      --dk-yellow: #f79009;
+      --dk-red: #f04438;
+      --dk-shadow: 0 16px 38px rgba(7, 23, 52, 0.14);
+      --dk-shadow-hover: 0 22px 48px rgba(7, 23, 52, 0.22);
+      --dk-gradient: linear-gradient(135deg, #071734 0%, #0e3b82 48%, #1667d9 100%);
+      --dk-gradient-soft: linear-gradient(135deg, #0b2148 0%, #1667d9 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--dk-bg);
+      color: var(--dk-text);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 48%, #eef3f8 100%);
+      border-right: 1px solid var(--dk-border);
+      box-shadow: 8px 0 30px rgba(7, 23, 52, 0.08);
+    }
+
+    .sidebar-inner {
+      min-height: 100%;
+      padding: 22px 18px 26px;
+    }
+
+    .brand-card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 16px 14px;
+      box-shadow: 0 12px 30px rgba(7, 23, 52, 0.10);
+      margin-bottom: 16px;
+      border: 1px solid rgba(22, 103, 217, 0.08);
+    }
+
+    .brand-logo {
+      width: 100%;
+      max-height: 130px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .filters-panel {
+      margin-top: 18px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid var(--dk-border);
+      border-radius: 18px;
+      padding: 18px 16px;
+      box-shadow: 0 12px 26px rgba(7, 23, 52, 0.08);
+    }
+
+    .section-title {
+      font-size: 12px;
+      letter-spacing: 5px;
+      text-align: center;
+      margin: 0 0 18px;
+      font-weight: 900;
+      color: var(--dk-navy);
+    }
+
+    .filters-panel label {
+      display: block;
+      font-size: 13px;
+      margin: 15px 0 7px;
+      font-weight: 700;
+      color: var(--dk-navy);
+    }
+
+    select {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid #c8d5e8;
+      background: #f7faff;
+      color: var(--dk-text);
+      border-radius: 10px;
+      outline: none;
+      font-size: 13px;
+      transition: 0.2s ease;
+    }
+
+    select:focus {
+      border-color: var(--dk-blue);
+      box-shadow: 0 0 0 4px rgba(22, 103, 217, 0.12);
+    }
+
+    .btn-reset {
+      width: 100%;
+      margin-top: 20px;
+      border: none;
+      padding: 12px 14px;
+      border-radius: 12px;
+      color: white;
+      font-weight: 900;
+      cursor: pointer;
+      background: var(--dk-gradient-soft);
+      box-shadow: 0 10px 22px rgba(22, 103, 217, 0.28);
+      transition: 0.2s ease;
+    }
+
+    .btn-reset:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 28px rgba(22, 103, 217, 0.36);
+    }
+
+    .sidebar::-webkit-scrollbar,
+    .main::-webkit-scrollbar {
+      width: 9px;
+    }
+
+    .sidebar::-webkit-scrollbar-track,
+    .main::-webkit-scrollbar-track {
+      background: #e7edf5;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb,
+    .main::-webkit-scrollbar-thumb {
+      background: #aab9cc;
+      border-radius: 20px;
+    }
+
+    .main {
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 28px 34px 34px;
+      background:
+        radial-gradient(circle at top right, rgba(38, 131, 255, 0.18), transparent 28%),
+        radial-gradient(circle at top left, rgba(7, 23, 52, 0.12), transparent 26%),
+        linear-gradient(180deg, #f7faff 0%, #eef3f8 100%);
+    }
+
+    .header {
+      background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(255,255,255,0.78));
+      backdrop-filter: blur(16px);
+      border-radius: 22px;
+      padding: 22px 26px;
+      margin-bottom: 22px;
+      box-shadow: var(--dk-shadow);
+      border: 1px solid rgba(22, 103, 217, 0.10);
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 24px;
+      color: var(--dk-navy);
+      letter-spacing: -0.4px;
+    }
+
+    .header p {
+      margin: 7px 0 0;
+      color: var(--dk-muted);
+      font-size: 14px;
+      max-width: 850px;
+      line-height: 1.45;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 22px;
+      margin-bottom: 22px;
+    }
+
+    .kpi-card {
+      border-radius: 18px;
+      background: var(--dk-card);
+      box-shadow: var(--dk-shadow);
+      overflow: hidden;
+      min-height: 124px;
+      transition: 0.22s ease;
+      border: 1px solid rgba(22, 103, 217, 0.08);
+    }
+
+    .kpi-card:hover,
+    .visual-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--dk-shadow-hover);
+    }
+
+    .kpi-head {
+      padding: 15px 18px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--dk-gradient);
+      font-weight: 900;
+
+      position: sticky;
+      top: 0;
+      z-index: 10;
+
+    }
+
+    .kpi-body {
+      padding: 17px 18px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    .kpi-value {
+      font-size: 23px;
+      font-weight: 950;
+      color: var(--dk-navy);
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-sub {
+      font-size: 12px;
+      margin-top: 5px;
+      color: var(--dk-muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+
+    .grid-full {
+      grid-column: 1 / -1;
+    }
+
+    .visual-card {
+      background: var(--dk-card);
+      border-radius: 18px;
+      box-shadow: var(--dk-shadow);
+      overflow: hidden;
+      transition: 0.22s ease;
+      border: 1px solid rgba(22, 103, 217, 0.08);
+    }
+
+    .visual-head {
+      padding: 15px 18px;
+      background: var(--dk-gradient);
+      color: white;
+      font-weight: 950;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .visual-head span {
+      font-size: 25px;
+      opacity: 0.95;
+    }
+
+    .visual-body {
+      padding: 8px;
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+    }
+    .visual-body-table {
+      padding: 0px 8px 8px 8px;
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+    }
+
+    .chart-wrap {
+      height: 330px;
+      position: relative;
+    }
+
+    .chart-wrap.small {
+      height: 305px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 420px;
+    }
+
+    .time-controls {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .time-label {
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--dk-navy);
+      white-space: nowrap;
+    }
+
+    .time-controls select {
+      max-width: 190px;
+      background: #f7faff;
+    }
+
+    .donut-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
+      align-items: center;
+      min-height: 330px;
+    }
+
+    .donut-small {
+      height: 295px;
+    }
+
+    .donut-insights {
+      background: #f7faff;
+      border: 1px solid #d9e2ef;
+      border-radius: 16px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .insight-item {
+      background: #ffffff;
+      border-radius: 13px;
+      padding: 11px 12px;
+      box-shadow: 0 8px 18px rgba(7, 23, 52, 0.08);
+    }
+
+    .insight-label {
+      font-size: 11px;
+      color: #667085;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .insight-value {
+      margin-top: 4px;
+      font-size: 18px;
+      font-weight: 950;
+      color: #071734;
+    }
+
+    .insight-sub {
+      margin-top: 2px;
+      font-size: 12px;
+      color: #667085;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      color: var(--dk-navy);
+      border-bottom: 1px solid #b7c7dc;
+      padding: 0 8px 9px 8px;
+      font-weight: 950;
+      position: sticky;
+      top: 0;
+      background: #ffffff;
+      z-index: 1;
+    }
+
+    td {
+      padding: 8px;
+      border-bottom: 1px solid #edf1f6;
+      color: #263445;
+    }
+
+    tr:hover {
+      background: #eef6ff;
+    }
+
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bar-cell {
+      position: relative;
+      text-align: right;
+      min-width: 125px;
+      overflow: hidden;
+    }
+
+    .bar-cell::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 6px;
+      height: calc(100% - 12px);
+      width: var(--w);
+      background: linear-gradient(90deg, rgba(22, 103, 217, 0.18), rgba(77, 180, 255, 0.35));
+      border-radius: 5px;
+      z-index: 0;
+    }
+
+    .bar-cell span {
+      position: relative;
+      z-index: 0;
+      font-weight: 700;
+    }
+
+    .semaforo {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .semaforo::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .semaforo.alto {
+      background: rgba(18, 183, 106, 0.12);
+      color: #067647;
+    }
+
+    .semaforo.alto::before {
+      background: var(--dk-green);
+    }
+
+    .semaforo.medio {
+      background: rgba(247, 144, 9, 0.14);
+      color: #b54708;
+    }
+
+    .semaforo.medio::before {
+      background: var(--dk-yellow);
+    }
+
+    .semaforo.bajo {
+      background: rgba(240, 68, 56, 0.12);
+      color: #b42318;
+    }
+
+    .semaforo.bajo::before {
+      background: var(--dk-red);
+    }
+
+    .empty {
+      padding: 25px;
+      border-radius: 18px;
+      background: #eef6ff;
+      color: var(--dk-navy);
+      font-weight: 800;
+      text-align: center;
+      box-shadow: var(--dk-shadow);
+      border: 1px solid rgba(22, 103, 217, 0.16);
+    }
+
+    @media (max-width: 1100px) {
+      html,
+      body {
+        overflow: auto;
+        height: auto;
+      }
+
+      .app {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow: visible;
+      }
+
+      .sidebar,
+      .main {
+        height: auto;
+        overflow: visible;
+      }
+
+      .kpis {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid,
+      .donut-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .donut-small {
+        height: 300px;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .main {
+        padding: 18px;
+      }
+
+      .kpis {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <aside class="sidebar">
+      <div class="sidebar-inner">
+
+        <div class="brand-card">
+          <img src="datakore-logo.png" class="brand-logo" alt="DataKore Logo">
+        </div>
+
+        <div class="filters-panel">
+          <div class="section-title">FILTROS</div>
+
+          <label>Año</label>
+          <select id="filterYear"></select>
+
+          <label>Mes</label>
+          <select id="filterMonth"></select>
+
+          <label>Vendedor</label>
+          <select id="filterSeller"></select>
+
+          <label>Marca</label>
+          <select id="filterBrand"></select>
+
+          <label>Color</label>
+          <select id="filterColor"></select>
+
+          <label>Sede</label>
+          <select id="filterBranch"></select>
+
+          <button class="btn-reset" onclick="resetFilters()">Limpiar filtros</button>
+        </div>
+
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <section class="header">
+        <div>
+          <h2>¿Te imaginas tomar decisiones así de fácil?</h2>
+          <p>
+            Convierte tus datos en tableros visuales, interactivos y listos para vender más.
+            Descubre ventas, costos, utilidad, productos ganadores y oportunidades en segundos.
+          </p>
+        </div>
+      </section>
+
+      <section class="kpis">
+        <div class="kpi-card">
+          <div class="kpi-head">Total Ventas <span>💰</span></div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiSales">$0</div>
+            <div class="kpi-sub">Suma de ventas</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-head">Total Costo <span>🏷️</span></div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiCost">$0</div>
+            <div class="kpi-sub">Suma de costo</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-head">Total Utilidad <span>💵</span></div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiProfit">$0</div>
+            <div class="kpi-sub">Suma de utilidad</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-head">Margen Utilidad <span>%</span></div>
+          <div class="kpi-body">
+            <div class="kpi-value" id="kpiMargin">0%</div>
+            <div class="kpi-sub">Utilidad / Ventas</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="emptyState" class="empty" style="display:none;">
+        No hay datos para los filtros seleccionados.
+      </section>
+
+      <section class="grid" id="dashboardGrid">
+
+        <div class="visual-card grid-full">
+          <div class="visual-head">
+            Ventas por fecha
+            <span>📈</span>
+          </div>
+
+          <div class="visual-body">
+            <div class="time-controls">
+              <label for="timeLevel" class="time-label">Agrupar fecha por</label>
+              <select id="timeLevel">
+                <option value="month" selected>Mes</option>
+                <option value="day">Día</option>
+                <option value="quarter">Trimestre</option>
+                <option value="semester">Semestre</option>
+                <option value="year">Año</option>
+              </select>
+            </div>
+
+            <div class="chart-wrap">
+              <canvas id="lineChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="visual-card">
+          <div class="visual-head">
+            Desempeño por vendedor
+            <span>🧑‍💼</span>
+          </div>
+
+          <div class="visual-body-table table-wrap">
+            <table id="sellerTable"></table>
+          </div>
+        </div>
+
+        <div class="visual-card">
+          <div class="visual-head">
+            Cantidad vendida por marca
+            <span>🏷️</span>
+          </div>
+
+          <div class="visual-body">
+            <div class="donut-layout">
+              <div class="chart-wrap donut-small">
+                <canvas id="brandQtyChart"></canvas>
+              </div>
+
+              <div class="donut-insights" id="brandQtyInsights"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="visual-card">
+          <div class="visual-head">
+            Rentabilidad por sede
+            <span>🏬</span>
+          </div>
+
+          <div class="visual-body">
+            <div class="chart-wrap small">
+              <canvas id="branchProfitChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="visual-card">
+          <div class="visual-head">
+            Cantidad vendida por color
+            <span>🎨</span>
+          </div>
+
+          <div class="visual-body">
+            <div class="chart-wrap small">
+              <canvas id="colorQtyChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="visual-card grid-full">
+          <div class="visual-head">
+            Tabla resumen
+            <span>▦</span>
+          </div>
+
+          <div class="visual-bodytable table-wrap">
+            <table id="summaryTable"></table>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script>
+    let rawData = [];
+    let charts = {};
+
+    Chart.register(ChartDataLabels);
+
+    let chartFilters = {
+      dateKey: "Todos",
+      seller: "Todos",
+      brand: "Todos",
+      color: "Todos",
+      branch: "Todos"
+    };
+
+    const excelFileName = "ventas_zapatos.xlsx";
+
+    const paletteColors = [
+      "#1667d9",
+      "#2683ff",
+      "#4db4ff",
+      "#6ec6ff",
+      "#93d5ff",
+      "#b7e3ff",
+      "#0e3b82",
+      "#1f5fbf",
+      "#0b2148"
+    ];
+
+    let brandColorMap = {};
+
+    const brandColorOverrides = {
+      "Adidas": "#1e4b78",
+      "Reebok": "#419add",
+      "Nike": "#071734"
+    };
+
+    const money = new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      maximumFractionDigits: 0
+    });
+
+    const monthNames = [
+      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadExcelAutomatically();
+
+      [
+        "filterYear",
+        "filterMonth",
+        "filterSeller",
+        "filterBrand",
+        "filterColor",
+        "filterBranch",
+        "timeLevel"
+      ].forEach(id => {
+        document.getElementById(id).addEventListener("change", () => {
+          if (id !== "timeLevel") {
+            chartFilters.dateKey = "Todos";
+            chartFilters.seller = "Todos";
+            chartFilters.brand = "Todos";
+            chartFilters.color = "Todos";
+            chartFilters.branch = "Todos";
+          }
+
+          renderDashboard();
+        });
+      });
+    });
+
+    async function loadExcelAutomatically() {
+      try {
+        const response = await fetch(excelFileName);
+
+        if (!response.ok) {
+          throw new Error("No se encontró el archivo Excel");
+        }
+
+        const arrayBuffer = await response.arrayBuffer();
+        readWorkbook(arrayBuffer);
+      } catch (error) {
+        console.warn("No fue posible cargar automáticamente el Excel:", error);
+      }
+    }
+
+    function readWorkbook(arrayBuffer) {
+      const workbook = XLSX.read(arrayBuffer, {
+        type: "array",
+        cellDates: true
+      });
+
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+
+      const rows = XLSX.utils.sheet_to_json(sheet, {
+        defval: ""
+      });
+
+      rawData = rows
+        .map(normalizeRow)
+        .filter(row => row.ID_Venta !== "");
+
+      buildBrandColorMap();
+      populateFilters();
+      renderDashboard();
+    }
+
+    function normalizeRow(row) {
+      const fecha = parseExcelDate(row.Fecha_Venta);
+
+      return {
+        ID_Venta: row.ID_Venta,
+        Fecha_Venta: fecha,
+        Vendedor: String(row.Vendedor || "").trim(),
+        Marca: String(row.Marca || "").trim(),
+        Tipo_Zapato: String(row.Tipo_Zapato || row.Tipo_Zapat || row["ipo_Zapat"] || "").trim(),
+        Color: String(row.Color || "").trim(),
+        Precio_Venta: Number(row.Precio_Venta || row["recio_Vent"] || row.Precio || 0),
+        Costo: Number(row.Costo || 0),
+        Utilidad: Number(row.Utilidad || 0),
+        Sede: String(row.Sede || "").trim()
+      };
+    }
+
+    function parseExcelDate(value) {
+      if (value instanceof Date) return value;
+
+      if (typeof value === "number") {
+        const parsed = XLSX.SSF.parse_date_code(value);
+        return new Date(parsed.y, parsed.m - 1, parsed.d);
+      }
+
+      if (typeof value === "string") {
+        return new Date(value);
+      }
+
+      return null;
+    }
+
+    function buildBrandColorMap() {
+      const brands = unique(rawData.map(d => d.Marca))
+        .filter(Boolean)
+        .sort();
+
+      brandColorMap = {};
+
+      brands.forEach((brand, index) => {
+        brandColorMap[brand] = paletteColors[index % paletteColors.length];
+      });
+    }
+
+    function getBrandColor(brand) {
+      return brandColorOverrides[brand] || brandColorMap[brand] || "#1667d9";
+    }
+
+    function populateFilters() {
+      fillSelect("filterYear", unique(rawData.map(d => getYear(d.Fecha_Venta))).sort());
+      fillSelect("filterMonth", unique(rawData.map(d => getMonth(d.Fecha_Venta))).sort((a,b) => a-b), true);
+      fillSelect("filterSeller", unique(rawData.map(d => d.Vendedor)).sort());
+      fillSelect("filterBrand", unique(rawData.map(d => d.Marca)).sort());
+      fillSelect("filterColor", unique(rawData.map(d => d.Color)).sort());
+      fillSelect("filterBranch", unique(rawData.map(d => d.Sede)).sort());
+    }
+
+    function fillSelect(id, values, isMonth = false) {
+      const select = document.getElementById(id);
+      select.innerHTML = "";
+
+      const all = document.createElement("option");
+      all.value = "Todos";
+      all.textContent = "Todos";
+      select.appendChild(all);
+
+      values
+        .filter(v => v !== "" && v !== null && v !== undefined)
+        .forEach(value => {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = isMonth ? monthNames[Number(value) - 1] : value;
+          select.appendChild(option);
+        });
+    }
+
+    function renderDashboard() {
+      const data = getFilteredData();
+      const empty = data.length === 0;
+
+      document.getElementById("emptyState").style.display = empty ? "block" : "none";
+      document.getElementById("dashboardGrid").style.display = empty ? "none" : "grid";
+
+      renderKPIs(data);
+
+      if (empty) return;
+
+      renderLineChart(data);
+      renderSellerTable(data);
+      renderBrandQtyChart(data);
+      renderBranchProfitChart(data);
+      renderColorQtyChart(data);
+      renderSummaryTable(data);
+    }
+
+    function getFilteredData() {
+      const year = valueOf("filterYear");
+      const month = valueOf("filterMonth");
+      const seller = valueOf("filterSeller");
+      const brand = valueOf("filterBrand");
+      const color = valueOf("filterColor");
+      const branch = valueOf("filterBranch");
+      const timeLevel = valueOf("timeLevel");
+
+      return rawData.filter(d => {
+        const dateKey = buildDateKey(d.Fecha_Venta, timeLevel);
+
+        return (
+          (year === "Todos" || String(getYear(d.Fecha_Venta)) === String(year)) &&
+          (month === "Todos" || String(getMonth(d.Fecha_Venta)) === String(month)) &&
+          (seller === "Todos" || d.Vendedor === seller) &&
+          (brand === "Todos" || d.Marca === brand) &&
+          (color === "Todos" || d.Color === color) &&
+          (branch === "Todos" || d.Sede === branch) &&
+          (chartFilters.dateKey === "Todos" || dateKey === chartFilters.dateKey) &&
+          (chartFilters.seller === "Todos" || d.Vendedor === chartFilters.seller) &&
+          (chartFilters.brand === "Todos" || d.Marca === chartFilters.brand) &&
+          (chartFilters.color === "Todos" || d.Color === chartFilters.color) &&
+          (chartFilters.branch === "Todos" || d.Sede === chartFilters.branch)
+        );
+      });
+    }
+
+    function renderKPIs(data) {
+      const sales = sum(data, "Precio_Venta");
+      const cost = sum(data, "Costo");
+      const profit = sum(data, "Utilidad");
+      const margin = sales > 0 ? profit / sales : 0;
+
+      document.getElementById("kpiSales").textContent = money.format(sales);
+      document.getElementById("kpiCost").textContent = money.format(cost);
+      document.getElementById("kpiProfit").textContent = money.format(profit);
+      document.getElementById("kpiMargin").textContent = `${(margin * 100).toFixed(1)}%`;
+    }
+
+    function groupMetricsBy(data, keyFunction) {
+      return data.reduce((acc, row) => {
+        const key = keyFunction(row) || "Sin dato";
+
+        if (!acc[key]) {
+          acc[key] = {
+            Ventas: 0,
+            Costo: 0,
+            Utilidad: 0,
+            Cantidad: 0
+          };
+        }
+
+        acc[key].Ventas += Number(row.Precio_Venta || 0);
+        acc[key].Costo += Number(row.Costo || 0);
+        acc[key].Utilidad += Number(row.Utilidad || 0);
+        acc[key].Cantidad += 1;
+
+        return acc;
+      }, {});
+    }
+
+    function tooltipMetricas(ctx) {
+      const label = ctx.label;
+      const summary = ctx.chart.$summary ? ctx.chart.$summary[label] : null;
+
+      if (!summary) return "";
+
+      return [
+        `Total ventas: ${money.format(summary.Ventas)}`,
+        `Total costo: ${money.format(summary.Costo)}`,
+        `Total utilidad: ${money.format(summary.Utilidad)}`,
+        `Cantidad vendida: ${summary.Cantidad}`
+      ];
+    }
+
+    function renderLineChart(data) {
+      const timeLevel = valueOf("timeLevel");
+
+      const grouped = groupMetricsBy(
+        data,
+        d => buildDateKey(d.Fecha_Venta, timeLevel)
+      );
+
+      const labels = Object.keys(grouped).sort();
+      const values = labels.map(label => grouped[label].Ventas);
+
+      createOrUpdateChart("lineChart", {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Ventas",
+            data: values,
+            borderColor: "#1667d9",
+            backgroundColor: "rgba(22, 103, 217, 0.14)",
+            borderWidth: 3,
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            pointBackgroundColor: "#ffffff",
+            pointBorderColor: "#1667d9",
+            pointBorderWidth: 3,
+            tension: 0.35,
+            fill: true
+          }]
+        },
+        options: getBaseLineOptions()
+      });
+
+      charts["lineChart"].$summary = grouped;
+    }
+
+    function renderSellerTable(data) {
+      const grouped = groupMetricsBy(data, d => d.Vendedor);
+
+      const rows = Object.keys(grouped).map(vendedor => {
+        const r = grouped[vendedor];
+
+        return {
+          Vendedor: vendedor,
+          Ventas: r.Ventas,
+          Costo: r.Costo,
+          Utilidad: r.Utilidad,
+          Cantidad: r.Cantidad,
+          Margen: r.Ventas > 0 ? r.Utilidad / r.Ventas : 0
+        };
+      }).sort((a, b) => b.Ventas - a.Ventas);
+
+      const maxSales = Math.max(...rows.map(r => r.Ventas), 1);
+      const table = document.getElementById("sellerTable");
+
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Vendedor</th>
+            <th class="num">Cantidad</th>
+            <th class="num">Total Ventas</th>
+            <th class="num">Total Costo</th>
+            <th class="num">Total Utilidad</th>
+            <th class="num">Margen Utilidad</th>
+            <th>Semáforo</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${rows.map(r => {
+            const level = getMarginLevel(r.Margen);
+            const label = level === "alto" ? "Alto" : level === "medio" ? "Medio" : "Bajo";
+
+            return `
+              <tr onclick="toggleSellerFilter('${escapeForAttribute(r.Vendedor)}')" style="cursor:pointer;">
+                <td>${r.Vendedor}</td>
+                <td class="num">${r.Cantidad}</td>
+                <td class="num bar-cell" style="--w:${(r.Ventas / maxSales) * 95}%">
+                  <span>${money.format(r.Ventas)}</span>
+                </td>
+                <td class="num">${money.format(r.Costo)}</td>
+                <td class="num">${money.format(r.Utilidad)}</td>
+                <td class="num">${(r.Margen * 100).toFixed(1)}%</td>
+                <td><span class="semaforo ${level}">${label}</span></td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      `;
+    }
+
+    function getMarginLevel(value) {
+      const marginPercent = value * 100;
+
+      if (marginPercent > 43) return "alto";
+      if (marginPercent >= 40 && marginPercent <= 42.9) return "medio";
+      return "bajo";
+    }
+
+    function renderBrandQtyChart(data) {
+      const grouped = groupMetricsBy(data, d => d.Marca);
+
+      const labels = Object.keys(grouped).sort((a, b) => grouped[b].Cantidad - grouped[a].Cantidad);
+      const values = labels.map(label => grouped[label].Cantidad);
+      const totalQty = values.reduce((acc, value) => acc + value, 0);
+
+      createOrUpdateChart("brandQtyChart", {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [{
+            label: "Cantidad vendida",
+            data: values,
+            backgroundColor: labels.map(label => getBrandColor(label)),
+            borderColor: "#ffffff",
+            borderWidth: 3,
+            hoverOffset: 10
+          }]
+        },
+        options: getPieOptions(totalQty)
+      });
+
+      charts["brandQtyChart"].$summary = grouped;
+
+      renderBrandQtyInsights(labels, values, totalQty);
+    }
+
+    function renderBrandQtyInsights(labels, values, totalQty) {
+      const container = document.getElementById("brandQtyInsights");
+
+      if (!container || labels.length === 0) return;
+
+      const topBrand = labels[0];
+      const topQty = values[0];
+      const topShare = totalQty > 0 ? (topQty / totalQty) * 100 : 0;
+
+      container.innerHTML = `
+        <div class="insight-item">
+          <div class="insight-label">Marca líder</div>
+          <div class="insight-value">${topBrand}</div>
+          <div class="insight-sub">${topQty} pares vendidos</div>
+        </div>
+
+        <div class="insight-item">
+          <div class="insight-label">Participación líder</div>
+          <div class="insight-value">${topShare.toFixed(1)}%</div>
+          <div class="insight-sub">sobre el total vendido</div>
+        </div>
+
+        <div class="insight-item">
+          <div class="insight-label">Cantidad total</div>
+          <div class="insight-value">${totalQty}</div>
+          <div class="insight-sub">pares vendidos</div>
+        </div>
+
+        <div class="insight-item">
+          <div class="insight-label">Marcas activas</div>
+          <div class="insight-value">${labels.length}</div>
+          <div class="insight-sub">marcas con ventas</div>
+        </div>
+      `;
+    }
+
+    function renderBranchProfitChart(data) {
+      const grouped = groupMetricsBy(data, d => d.Sede);
+
+      const labels = Object.keys(grouped).sort((a, b) => grouped[b].Utilidad - grouped[a].Utilidad);
+      const values = labels.map(label => grouped[label].Utilidad);
+
+      createOrUpdateChart("branchProfitChart", {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Utilidad",
+            data: values,
+            backgroundColor: gradientColors(labels.length, "#071734", "#4db4ff"),
+            borderRadius: 9,
+            borderSkipped: false
+          }]
+        },
+        options: getBaseBarOptions("branch", "money")
+      });
+
+      charts["branchProfitChart"].$summary = grouped;
+    }
+
+    function renderColorQtyChart(data) {
+      const grouped = groupMetricsBy(data, d => d.Color);
+
+      const labels = Object.keys(grouped).sort((a, b) => grouped[b].Cantidad - grouped[a].Cantidad);
+      const values = labels.map(label => grouped[label].Cantidad);
+
+      createOrUpdateChart("colorQtyChart", {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Cantidad vendida",
+            data: values,
+            backgroundColor: gradientColors(labels.length, "#071734", "#4db4ff"),
+            borderRadius: 9,
+            borderSkipped: false
+          }]
+        },
+        options: getBaseBarOptions("color", "quantity")
+      });
+
+      charts["colorQtyChart"].$summary = grouped;
+    }
+
+    function getBaseLineOptions() {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 28,
+            right: 12
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            color: "#071734",
+            anchor: "end",
+            align: "top",
+            font: {
+              weight: "bold",
+              size: 11
+            },
+            formatter: value => compactMoney(value)
+          },
+          tooltip: {
+            backgroundColor: "#071734",
+            padding: 12,
+            cornerRadius: 10,
+            callbacks: {
+              label: tooltipMetricas
+            }
+          }
+        },
+        scales: {
+          y: {
+            ticks: {
+              color: "#667085",
+              callback: value => compactMoney(value)
+            },
+            grid: { color: "#e8eef6" }
+          },
+          x: {
+            ticks: { color: "#667085" },
+            grid: { display: false }
+          }
+        },
+        onClick: (event, elements, chart) => {
+          if (!elements.length) return;
+
+          const clicked = chart.data.labels[elements[0].index];
+
+          chartFilters.dateKey =
+            chartFilters.dateKey === clicked ? "Todos" : clicked;
+
+          renderDashboard();
+        }
+      };
+    }
+
+    function getBaseBarOptions(filterType, valueType = "money") {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 28,
+            right: 12
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            color: "#071734",
+            anchor: "end",
+            align: "top",
+            font: {
+              weight: "bold",
+              size: 11
+            },
+            formatter: value => {
+              if (valueType === "quantity") return value;
+              return compactMoney(value);
+            }
+          },
+          tooltip: {
+            backgroundColor: "#071734",
+            padding: 12,
+            cornerRadius: 10,
+            callbacks: {
+              label: tooltipMetricas
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: "#667085",
+              callback: value => {
+                if (valueType === "quantity") return value;
+                return compactMoney(value);
+              }
+            },
+            grid: { color: "#e8eef6" }
+          },
+          x: {
+            ticks: {
+              color: "#667085",
+              maxRotation: 30,
+              minRotation: 0
+            },
+            grid: { display: false }
+          }
+        },
+        onClick: (event, elements, chart) => {
+          if (!elements.length) return;
+
+          const clicked = chart.data.labels[elements[0].index];
+
+          if (filterType === "color") {
+            chartFilters.color =
+              chartFilters.color === clicked ? "Todos" : clicked;
+          }
+
+          if (filterType === "branch") {
+            chartFilters.branch =
+              chartFilters.branch === clicked ? "Todos" : clicked;
+          }
+
+          renderDashboard();
+        }
+      };
+    }
+
+    function getPieOptions(totalQty) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: "55%",
+        layout: {
+          padding: 6
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: "bottom",
+            labels: {
+              color: "#071734",
+              boxWidth: 12,
+              usePointStyle: true,
+              pointStyle: "circle",
+              padding: 14,
+              font: {
+                size: 11,
+                weight: "bold"
+              }
+            }
+          },
+          datalabels: {
+            color: "#ffffff",
+            font: {
+              weight: "bold",
+              size: 12
+            },
+            formatter: value => {
+              if (!totalQty) return "0%";
+              return `${((value / totalQty) * 100).toFixed(1)}%`;
+            }
+          },
+          tooltip: {
+            backgroundColor: "#071734",
+            padding: 12,
+            cornerRadius: 10,
+            callbacks: {
+              label: tooltipMetricas
+            }
+          }
+        },
+        onClick: (event, elements, chart) => {
+          if (!elements.length) return;
+
+          const clicked = chart.data.labels[elements[0].index];
+
+          chartFilters.brand =
+            chartFilters.brand === clicked ? "Todos" : clicked;
+
+          renderDashboard();
+        }
+      };
+    }
+
+    function renderSummaryTable(data) {
+      const grouped = {};
+
+      data.forEach(d => {
+        const key = `${d.Sede}||${d.Marca}||${d.Tipo_Zapato}`;
+
+        if (!grouped[key]) {
+          grouped[key] = {
+            Sede: d.Sede,
+            Marca: d.Marca,
+            Tipo_Zapato: d.Tipo_Zapato,
+            Ventas: 0,
+            Costo: 0,
+            Utilidad: 0,
+            Cantidad: 0
+          };
+        }
+
+        grouped[key].Ventas += d.Precio_Venta;
+        grouped[key].Costo += d.Costo;
+        grouped[key].Utilidad += d.Utilidad;
+        grouped[key].Cantidad += 1;
+      });
+
+      const rows = Object.values(grouped)
+        .map(r => ({
+          ...r,
+          Margen: r.Ventas > 0 ? r.Utilidad / r.Ventas : 0
+        }))
+        .sort((a, b) => b.Ventas - a.Ventas);
+
+      const maxSales = Math.max(...rows.map(r => r.Ventas), 1);
+      const maxProfit = Math.max(...rows.map(r => r.Utilidad), 1);
+
+      const totals = {
+        Ventas: sum(data, "Precio_Venta"),
+        Costo: sum(data, "Costo"),
+        Utilidad: sum(data, "Utilidad"),
+        Cantidad: data.length
+      };
+
+      const totalMargin = totals.Ventas > 0 ? totals.Utilidad / totals.Ventas : 0;
+
+      const table = document.getElementById("summaryTable");
+
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Sede</th>
+            <th>Marca</th>
+            <th>Tipo Zapato</th>
+            <th class="num">Cantidad</th>
+            <th class="num">Total Ventas</th>
+            <th class="num">Total Costo</th>
+            <th class="num">Total Utilidad</th>
+            <th class="num">Margen</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${rows.map(r => `
+            <tr>
+              <td>${r.Sede}</td>
+              <td>${r.Marca}</td>
+              <td>${r.Tipo_Zapato}</td>
+              <td class="num">${r.Cantidad}</td>
+              <td class="num bar-cell" style="--w:${(r.Ventas / maxSales) * 95}%">
+                <span>${money.format(r.Ventas)}</span>
+              </td>
+              <td class="num">${money.format(r.Costo)}</td>
+              <td class="num bar-cell" style="--w:${(r.Utilidad / maxProfit) * 95}%">
+                <span>${money.format(r.Utilidad)}</span>
+              </td>
+              <td class="num">${(r.Margen * 100).toFixed(1)}%</td>
+            </tr>
+          `).join("")}
+
+          <tr style="font-weight:950; background:#eef6ff;">
+            <td colspan="3">Total</td>
+            <td class="num">${totals.Cantidad}</td>
+            <td class="num">${money.format(totals.Ventas)}</td>
+            <td class="num">${money.format(totals.Costo)}</td>
+            <td class="num">${money.format(totals.Utilidad)}</td>
+            <td class="num">${(totalMargin * 100).toFixed(1)}%</td>
+          </tr>
+        </tbody>
+      `;
+    }
+
+    function toggleSellerFilter(vendedor) {
+      chartFilters.seller = chartFilters.seller === vendedor ? "Todos" : vendedor;
+      renderDashboard();
+    }
+
+    function createOrUpdateChart(canvasId, config) {
+      const ctx = document.getElementById(canvasId);
+
+      if (charts[canvasId]) {
+        charts[canvasId].destroy();
+      }
+
+      charts[canvasId] = new Chart(ctx, config);
+    }
+
+    function resetFilters() {
+      [
+        "filterYear",
+        "filterMonth",
+        "filterSeller",
+        "filterBrand",
+        "filterColor",
+        "filterBranch"
+      ].forEach(id => {
+        document.getElementById(id).value = "Todos";
+      });
+
+      document.getElementById("timeLevel").value = "month";
+
+      chartFilters = {
+        dateKey: "Todos",
+        seller: "Todos",
+        brand: "Todos",
+        color: "Todos",
+        branch: "Todos"
+      };
+
+      renderDashboard();
+    }
+
+    function valueOf(id) {
+      return document.getElementById(id).value;
+    }
+
+    function unique(arr) {
+      return [...new Set(arr)];
+    }
+
+    function sum(data, field) {
+      return data.reduce((acc, row) => acc + Number(row[field] || 0), 0);
+    }
+
+    function getYear(date) {
+      return date instanceof Date && !isNaN(date) ? date.getFullYear() : "";
+    }
+
+    function getMonth(date) {
+      return date instanceof Date && !isNaN(date) ? date.getMonth() + 1 : "";
+    }
+
+    function getQuarter(date) {
+      const month = getMonth(date);
+      if (!month) return "";
+      return Math.ceil(month / 3);
+    }
+
+    function getSemester(date) {
+      const month = getMonth(date);
+      if (!month) return "";
+      return month <= 6 ? 1 : 2;
+    }
+
+    function pad(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function buildDateKey(date, level) {
+      if (!(date instanceof Date) || isNaN(date)) return "";
+
+      const year = date.getFullYear();
+      const month = pad(date.getMonth() + 1);
+      const day = pad(date.getDate());
+
+      if (level === "year") return String(year);
+      if (level === "semester") return `${year}-S${getSemester(date)}`;
+      if (level === "quarter") return `${year}-T${getQuarter(date)}`;
+      if (level === "month") return `${year}-${month}`;
+
+      return `${year}-${month}-${day}`;
+    }
+
+    function compactMoney(value) {
+      if (value >= 1000000) return "$" + (value / 1000000).toFixed(1) + "M";
+      if (value >= 1000) return "$" + (value / 1000).toFixed(0) + "K";
+      return "$" + value;
+    }
+
+    function gradientColors(count, start, end) {
+      if (count <= 1) return [start];
+
+      const startRgb = hexToRgb(start);
+      const endRgb = hexToRgb(end);
+
+      return Array.from({ length: count }, (_, i) => {
+        const t = i / (count - 1);
+
+        const r = Math.round(startRgb.r + (endRgb.r - startRgb.r) * t);
+        const g = Math.round(startRgb.g + (endRgb.g - startRgb.g) * t);
+        const b = Math.round(startRgb.b + (endRgb.b - startRgb.b) * t);
+
+        return `rgb(${r}, ${g}, ${b})`;
+      });
+    }
+
+    function hexToRgb(hex) {
+      const clean = hex.replace("#", "");
+      const bigint = parseInt(clean, 16);
+
+      return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255
+      };
+    }
+
+    function escapeForAttribute(value) {
+      return String(value)
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'");
+    }
+
+    let resizeTimer;
+
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+
+      resizeTimer = setTimeout(() => {
+        location.reload();
+      }, 300);
+    });
+  </script>
+</body>
+</html>
